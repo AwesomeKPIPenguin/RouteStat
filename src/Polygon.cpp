@@ -3,33 +3,31 @@
 
 namespace routeStat {
 
-	Polygon::Polygon(json &j)
-		: _minLat(std::numeric_limits<double>::max()),
-		  _maxLat(-std::numeric_limits<double>::max()),
-		  _minLong(std::numeric_limits<double>::max()),
-		  _maxLong(-std::numeric_limits<double>::max()) {
+	Polygon::Polygon(json & j)
+		: _minLa(std::numeric_limits<double>::max()),
+		  _maxLa(-std::numeric_limits<double>::max()),
+		  _minLo(std::numeric_limits<double>::max()),
+		  _maxLo(-std::numeric_limits<double>::max()) {
 
-		json	arr;
 		Point	p;
 		Point	*prev1;
 		Point	*prev2;
 
-		arr = j[0]["coords"][0];
 		prev1 = nullptr;
 		prev2 = nullptr;
-		for (const auto &coords : arr) {
+		for (const auto & coords : j) {
 
-			p.setLat(coords[0].get<double>());
-			p.setLong(coords[1].get<double>());
+			p.setLa(coords[0].get<double>());
+			p.setLo(coords[1].get<double>());
 
-			if (p.getLat() < _minLat)
-				_minLat = p.getLat();
-			else if (p.getLat() > _maxLat)
-				_maxLat = p.getLat();
-			if (p.getLong() < _minLong)
-				_minLong = p.getLong();
-			else if (p.getLong() > _maxLong)
-				_maxLong = p.getLong();
+			if (p.getLa() < _minLa)
+				_minLa = p.getLa();
+			else if (p.getLa() > _maxLa)
+				_maxLa = p.getLa();
+			if (p.getLo() < _minLo)
+				_minLo = p.getLo();
+			else if (p.getLo() > _maxLo)
+				_maxLo = p.getLo();
 
 			// checks if the third point is on one line with two previous -
 			//   middle one is removed then due to it's redundancy
@@ -50,9 +48,10 @@ namespace routeStat {
 		}
 	}
 
+	int					Polygon::getId() const { return (_id); }
 	std::vector<Point>	Polygon::getPoints() const { return (_points); }
-	double				Polygon::getMinLat() const { return (_minLat); }
-	double				Polygon::getMaxLat() const { return (_maxLat); }
-	double				Polygon::getMinLong() const { return (_minLong); }
-	double				Polygon::getMaxLong() const { return (_maxLong); }
+	double				Polygon::getMinLa() const { return (_minLa); }
+	double				Polygon::getMaxLa() const { return (_maxLa); }
+	double				Polygon::getMinLo() const { return (_minLo); }
+	double				Polygon::getMaxLo() const { return (_maxLo); }
 }

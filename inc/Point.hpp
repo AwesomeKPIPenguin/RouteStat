@@ -4,40 +4,50 @@
 #include <iostream>
 #include <cmath>
 
-class Point {
+namespace routeStat {
 
-private:
+	class Polygon;
 
-	double					_lat;
-	double					_long;
+	class Point {
 
-public:
+	private:
 
-	static constexpr double	PREC = 1e-9;
+		double					_la;
+		double					_lo;
 
-	Point();
-	Point(double _lat, double _long);
+	public:
 
-	// getters/setters
+		static constexpr double	PREC = 1e-9;
 
-	double					getLat() const;
-	double					getLong() const;
+		Point();
+		Point(double, double);
 
-	void					setLat(double _lat);
-	void					setLong(double _long);
+		// getters/setters
 
-	// operators
+		double					getLa() const;
+		double					getLo() const;
 
-	friend Point			operator+(const Point &, const Point &);
-	friend Point			operator-(const Point &, const Point &);
-	friend Point			operator*(const Point &, const double);
-	friend Point			operator*(const double, const Point &);
-	friend std::ostream &	operator<<(std::ostream &, const Point &);
+		void					setLa(double);
+		void					setLo(double);
 
-	// geometry
+		// operators
 
-	double					getDist(const Point &) const;
-	bool					isInLine(const Point &, const Point &) const;
-	static bool				segmentSegmentIntersection(
-								Point &, Point &, Point &, Point &, Point &);
-};
+		friend Point			operator+(const Point &, const Point &);
+		friend Point			operator-(const Point &, const Point &);
+		friend Point			operator*(const Point &, const double);
+		friend Point			operator*(const double, const Point &);
+		friend std::ostream &	operator<<(std::ostream &, const Point &);
+
+		// geometry
+
+		double					len() const;
+		double					dot(const Point &) const;
+		double					getDist(const Point &) const;
+		bool					isInLine(const Point &, const Point &) const;
+		bool					isNearPoly(const Polygon &) const;
+
+		static bool				isInPoly(const Point &, const Polygon &);
+		static bool				segmentSegmentIntersection(
+									Point &, Point &, Point &, Point &, Point &);
+	};
+}

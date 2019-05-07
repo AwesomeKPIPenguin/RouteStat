@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <json.hpp>
+
 #include "Point.hpp"
 
 using json = nlohmann::json;
@@ -13,22 +14,24 @@ namespace routeStat {
 
 	private:
 
+		int					_id;
 		std::vector<Point>	_points;
-		double				_minLat;
-		double				_maxLat;
-		double				_minLong;
-		double				_maxLong;
+		double				_minLa;
+		double				_maxLa;
+		double				_minLo;
+		double				_maxLo;
 
 	public:
 
-		explicit Polygon(json &arr);
+		explicit Polygon(json &);	// "[[la, lo], [la, lo], ...]"
 
 		// getters
 
+		int					getId() const;
 		std::vector<Point>	getPoints() const;
-		double				getMinLat() const;
-		double				getMaxLat() const;
-		double				getMinLong() const;
-		double				getMaxLong() const;
+		double				getMinLa() const;
+		double				getMaxLa() const;
+		double				getMinLo() const;
+		double				getMaxLo() const;
 	};
 }

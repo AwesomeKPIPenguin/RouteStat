@@ -4,26 +4,29 @@
 #include <ctime>
 #include "Point.hpp"
 
-class RoutePoint {
+namespace routeStat {
 
-private:
+	class RoutePoint {
 
-	std::time_t	_time;
-	Point		_point;
+	private:
 
-	RoutePoint();
+		std::time_t	_time;
+		Point		_point;
 
-public:
+		RoutePoint();
 
-	RoutePoint(double _lat, double _long, std::time_t _time);
+	public:
 
-	// getters/setters
+		RoutePoint(double _lat, double _long, std::time_t _time);
 
-	double		getLat() const;
-	double		getLong() const;
-	time_t		getTime() const;
+		// getters/setters
 
-	void		setLat(double _lat);
-	void		setLong(double _long);
-	void		setTime(time_t _time);
-};
+		double		getLat() const;
+		double		getLong() const;
+		time_t		getTime() const;
+
+		void		setLat(double _lat);
+		void		setLong(double _long);
+		void		setTime(time_t _time);
+	};
+}
