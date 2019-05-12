@@ -1,7 +1,7 @@
 
 #include "RoutePoint.hpp"
 
-namespace routeStat {
+namespace RouteStat {
 
 	RoutePoint::RoutePoint() = default;
 

@@ -2,7 +2,13 @@
 #include "Point.hpp"
 #include "Polygon.hpp"
 
-namespace routeStat {
+namespace RouteStat {
+
+	// if it is more then about 1000 points in polygon, it is efficient to
+	//   use multiple threads (in general, 8 is enough)
+
+	static const int	START_THREADING = 1000;
+	static const int	THREADS = 8;
 
 	Point::Point() = default;
 
@@ -58,24 +64,73 @@ namespace routeStat {
 			 && _lo >= poly.getMinLo() && _lo <= poly.getMaxLo());
 	}
 
-	bool			Point::isInPoly(const Point & p, const Polygon & poly) {
+	void			Point::isInPolyPart(
+						const Polygon & poly, int from, int to, bool * res) {
 
-		bool				c;
-		std::vector<Point>	points;
+		std::vector<Point> *	points;
 
-		if (!p.isNearPoly(poly))
+		*res = false;
+
+		points = poly.getPoints();
+		for (int i = from + 1, j = from; i < to; j = i++) {
+
+			if ((((*points)[i]._lo > _lo) != ((*points)[j]._lo > _lo))
+			&& (_la < ((*points)[j]._la - (*points)[i]._la) * (_lo - (*points)[i]._lo)
+				/ ((*points)[j]._lo - (*points)[i]._lo) + (*points)[i]._la))
+			*res = !*res;
+		}
+	}
+
+	bool			Point::isInPolyFull(const Polygon & poly) {
+
+		bool					res;
+		std::vector<Point> *	points;
+
+		res = false;
+
+		points = poly.getPoints();
+		for (int i = 0, j = points->size() - 1; i < points->size(); j = i++) {
+
+			if ((((*points)[i]._lo > _lo) != ((*points)[j]._lo > _lo))
+			&& (((*points)[j]._la - (*points)[i]._la) * (_lo - (*points)[i]._lo)
+				/ ((*points)[j]._lo - (*points)[i]._lo) + (*points)[i]._la - _la <= PREC))
+			res = !res;
+		}
+		return (res);
+	}
+
+	bool			Point::isInPoly(const Polygon & poly) {
+
+		std::thread		threads[THREADS];
+		bool			res[THREADS];
+		unsigned long	len;
+		int				part;
+		int				to;
+
+		if (!isNearPoly(poly))
 			return (false);
 
-		c = false;
-		points = poly.getPoints();
-		for (int i = 0, j = points.size() - 1; i < points.size(); j = i++) {
+		len = poly.getPoints()->size();
+		if (len > START_THREADING) {
 
-			if (((points[i]._lo > p._lo) != (points[j]._lo > p._lo))
-			&& (p._la < (points[j]._la - points[i]._la) * (p._lo - points[i]._lo)
-				/ (points[j]._lo - points[i]._lo) + points[i]._la))
-			c = !c;
+			part = len / THREADS;
+			for (int i = 0; i < THREADS; ++i) {
+
+				to = (i == THREADS - 1) ? len : (i + 1) * part;
+				threads[i] = std::thread([&]() {
+					isInPolyPart(poly, i * part, to, &res[i]);
+				});
+			}
+			for (int i = 0; i < THREADS; ++i)
+				threads[i].join();
+			for (bool b : res) {
+				if (!b) return (false);
+			}
+			return (true);
 		}
-		return (c);
+		else {
+			return (isInPolyFull(poly));
+		}
 	}
 
 	bool			Point::segmentSegmentIntersection(

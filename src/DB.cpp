@@ -1,9 +1,7 @@
 
 #include "DB.hpp"
 
-namespace routeStat {
-
-	DB::DB() = default;
+namespace RouteStat {
 
 	DB::DB(
 		std::string host,
@@ -16,9 +14,20 @@ namespace routeStat {
 	_port(std::move(port)),
 	_name(std::move(name)),
 	_user(std::move(user)),
-	_pass(std::move(pass)) {
+	_pass(std::move(pass)),
+	_conn(
+		"dbname = " + _name
+		+ " user = " + _user
+		+ " password = " + _pass
+		+ " hostaddr = " + _host
+		+ " port = " + _port
+	),
+	_work(_conn) {
 
-//		_conn = init_conn(_host, _port, _name,  _user, _pass ...);
+		if (_conn.is_open())
+			std::cout << "Connected to database '" << _name << "'" << std::endl;
+		else
+			std::cout << "Failed to connect to database '" << _name << "'" << std::endl;
 	}
 
 	std::string	DB::getHost() const { return (_host); }
@@ -26,6 +35,4 @@ namespace routeStat {
 	std::string	DB::getName() const { return (_name); }
 	std::string	DB::getUser() const { return (_user); }
 	std::string	DB::getPass() const { return (_pass); }
-
-
 }

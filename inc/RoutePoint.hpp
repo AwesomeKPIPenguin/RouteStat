@@ -4,7 +4,7 @@
 #include <ctime>
 #include "Point.hpp"
 
-namespace routeStat {
+namespace RouteStat {
 
 	class RoutePoint {
 

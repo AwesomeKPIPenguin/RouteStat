@@ -1,10 +1,11 @@
 
 #include "Polygon.hpp"
 
-namespace routeStat {
+namespace RouteStat {
 
 	Polygon::Polygon(json & j)
-		: _minLa(std::numeric_limits<double>::max()),
+		: _points(new std::vector<Point>()),
+		  _minLa(std::numeric_limits<double>::max()),
 		  _maxLa(-std::numeric_limits<double>::max()),
 		  _minLo(std::numeric_limits<double>::max()),
 		  _maxLo(-std::numeric_limits<double>::max()) {
@@ -13,6 +14,7 @@ namespace routeStat {
 		Point	*prev1;
 		Point	*prev2;
 
+		_points->reserve(10000);
 		prev1 = nullptr;
 		prev2 = nullptr;
 		for (const auto & coords : j) {
@@ -36,22 +38,22 @@ namespace routeStat {
 
 				std::cout << "DROPPED" << std::endl;
 
-				_points.pop_back();
-				prev1 = &_points.back();
+				_points->pop_back();
+				prev1 = &_points->back();
 			}
 
-			_points.emplace_back(p);
+			_points->emplace_back(p);
 
 			if (prev1)
-				prev2 = &_points.end()[-2];
-			prev1 = &_points.end()[-1];
+				prev2 = &_points->end()[-2];
+			prev1 = &_points->end()[-1];
 		}
 	}
 
-	int					Polygon::getId() const { return (_id); }
-	std::vector<Point>	Polygon::getPoints() const { return (_points); }
-	double				Polygon::getMinLa() const { return (_minLa); }
-	double				Polygon::getMaxLa() const { return (_maxLa); }
-	double				Polygon::getMinLo() const { return (_minLo); }
-	double				Polygon::getMaxLo() const { return (_maxLo); }
+	int						Polygon::getId() const { return (_id); }
+	std::vector<Point> *	Polygon::getPoints() const { return (_points); }
+	double					Polygon::getMinLa() const { return (_minLa); }
+	double					Polygon::getMaxLa() const { return (_maxLa); }
+	double					Polygon::getMinLo() const { return (_minLo); }
+	double					Polygon::getMaxLo() const { return (_maxLo); }
 }

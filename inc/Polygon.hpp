@@ -8,30 +8,30 @@
 
 using json = nlohmann::json;
 
-namespace routeStat {
+namespace RouteStat {
 
 	class Polygon {
 
 	private:
 
-		int					_id;
-		std::vector<Point>	_points;
-		double				_minLa;
-		double				_maxLa;
-		double				_minLo;
-		double				_maxLo;
+		int						_id;
+		std::vector<Point> *	_points;
+		double					_minLa;
+		double					_maxLa;
+		double					_minLo;
+		double					_maxLo;
 
 	public:
 
-		explicit Polygon(json &);	// "[[la, lo], [la, lo], ...]"
+		explicit Polygon(json &);	// json format: "[[la, lo], [la, lo], ...]"
 
 		// getters
 
-		int					getId() const;
-		std::vector<Point>	getPoints() const;
-		double				getMinLa() const;
-		double				getMaxLa() const;
-		double				getMinLo() const;
-		double				getMaxLo() const;
+		int						getId() const;
+		std::vector<Point> *	getPoints() const;
+		double					getMinLa() const;
+		double					getMaxLa() const;
+		double					getMinLo() const;
+		double					getMaxLo() const;
 	};
 }

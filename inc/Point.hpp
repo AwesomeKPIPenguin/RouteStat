@@ -3,8 +3,9 @@
 
 #include <iostream>
 #include <cmath>
+#include <thread>
 
-namespace routeStat {
+namespace RouteStat {
 
 	class Polygon;
 
@@ -14,6 +15,9 @@ namespace routeStat {
 
 		double					_la;
 		double					_lo;
+
+		void					isInPolyPart(const Polygon &, int, int, bool *);
+		bool					isInPolyFull(const Polygon &);
 
 	public:
 
@@ -45,8 +49,8 @@ namespace routeStat {
 		double					getDist(const Point &) const;
 		bool					isInLine(const Point &, const Point &) const;
 		bool					isNearPoly(const Polygon &) const;
+		bool					isInPoly(const Polygon &);
 
-		static bool				isInPoly(const Point &, const Polygon &);
 		static bool				segmentSegmentIntersection(
 									Point &, Point &, Point &, Point &, Point &);
 	};

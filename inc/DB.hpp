@@ -1,26 +1,33 @@
 
 #pragma once
 
+#include <iostream>
 #include <string>
+#include <pqxx/pqxx>
 
-namespace routeStat {
+namespace RouteStat {
 
 	class DB
 	{
 	private:
 
-		std::string	_host;
-		std::string	_port;
-		std::string	_name;
-		std::string	_user;
-		std::string	_pass;
-//		CONN		_conn;
-
-		DB();
+		std::string			_host;
+		std::string			_port;
+		std::string			_name;
+		std::string			_user;
+		std::string			_pass;
+		pqxx::connection	_conn;
+		pqxx::work			_work;
 
 	public:
 
-		DB(std::string, std::string, std::string, std::string, std::string);
+		DB(
+			std::string host,
+			std::string port,
+			std::string name,
+			std::string user,
+			std::string pass
+		);
 
 		// getters
 
