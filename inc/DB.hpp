@@ -5,11 +5,17 @@
 #include <string>
 #include <pqxx/pqxx>
 
+#include "Polygon.hpp"
+
 namespace RouteStat {
 
 	class DB
 	{
 	private:
+
+		static const std::string	TABLE;
+		static const std::string	SELECT;
+		static const std::string	INSERT;
 
 		std::string			_host;
 		std::string			_port;
@@ -31,14 +37,15 @@ namespace RouteStat {
 
 		// getters
 
-		std::string	getHost() const;
-		std::string	getPort() const;
-		std::string	getName() const;
-		std::string	getUser() const;
-		std::string	getPass() const;
+		std::string			getHost() const;
+		std::string			getPort() const;
+		std::string			getName() const;
+		std::string			getUser() const;
+		std::string			getPass() const;
 
 		// logic
 
-//		void		initMap(Map &) const;
+		void				initMap(std::vector<Polygon> *);
+		void				insert(int, nlohmann::json);
 	};
 }

@@ -3,8 +3,11 @@
 
 namespace RouteStat {
 
-	Polygon::Polygon(json & j)
-		: _points(new std::vector<Point>()),
+	Polygon::Polygon() = default;
+
+	Polygon::Polygon(int id, json j)
+		: _id(id),
+		  _points(new std::vector<Point>()),
 		  _minLa(std::numeric_limits<double>::max()),
 		  _maxLa(-std::numeric_limits<double>::max()),
 		  _minLo(std::numeric_limits<double>::max()),
@@ -56,4 +59,15 @@ namespace RouteStat {
 	double					Polygon::getMaxLa() const { return (_maxLa); }
 	double					Polygon::getMinLo() const { return (_minLo); }
 	double					Polygon::getMaxLo() const { return (_maxLo); }
+
+
+
+	bool					Polygon::isNear(const Polygon &p) const {
+
+		return (
+			((_minLa <= p._maxLa && _minLa >= p._minLa)
+				|| (_maxLa <= p._maxLa && _maxLa >= p._minLa))
+			&& ((_minLo <= p._maxLo && _minLo >= p._minLo)
+				|| (_maxLo <= p._maxLo && _maxLo >= p._minLo)));
+	}
 }

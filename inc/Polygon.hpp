@@ -23,7 +23,10 @@ namespace RouteStat {
 
 	public:
 
-		explicit Polygon(json &);	// json format: "[[la, lo], [la, lo], ...]"
+		Polygon();
+
+		// json format: "[[la, lo], [la, lo], ...]"
+		Polygon(int id, json);
 
 		// getters
 
@@ -33,5 +36,9 @@ namespace RouteStat {
 		double					getMaxLa() const;
 		double					getMinLo() const;
 		double					getMaxLo() const;
+
+		// logic
+
+		bool					isNear(const Polygon &) const;
 	};
 }

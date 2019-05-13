@@ -19,8 +19,11 @@ int main(int ac, char **av)
 		return (1);
 	}
 
-	//auto conn = Connection(av[1], av[2], av[3]);
-	DB * db = new DB(string(av[4]), string(av[5]), string(av[6]), string(av[7]), string(av[8]));
+	Connection		conn(av[1], av[2], av[3]);
+	DB				db(av[4], av[5], av[6], av[7], av[8]);
+
+	db.initMap(&map);
+	conn.
 
 	return (0);
 }
