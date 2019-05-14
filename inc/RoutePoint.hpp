@@ -1,7 +1,10 @@
 
 #pragma once
 
+#include <time.h>
 #include <ctime>
+#include <json.hpp>
+
 #include "Point.hpp"
 
 namespace RouteStat {
@@ -10,19 +13,24 @@ namespace RouteStat {
 
 	private:
 
-		std::time_t	_time;
 		Point		_point;
+		int			_dist;
+		std::time_t	_time;
+		int			_duration;
 
-		RoutePoint();
 
 	public:
 
-		RoutePoint(double _lat, double _long, std::time_t _time);
+		RoutePoint();
+		RoutePoint(
+			double la, double lo, int dist, std::time_t time, int duration);
+		RoutePoint(nlohmann::json json);
 
 		// getters/setters
 
 		double		getLat() const;
 		double		getLong() const;
+		Point &		getPoint();
 		time_t		getTime() const;
 
 		void		setLat(double _lat);

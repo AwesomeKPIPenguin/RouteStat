@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <thread>
+#include <atomic>
 
 namespace RouteStat {
 
@@ -13,12 +14,21 @@ namespace RouteStat {
 
 	private:
 
+		static const int		START_THREADING;
+		static const int		THREADS;
+		static const double		NULL_VALUE;
+
 		double					_la;
 		double					_lo;
 
 		void					isInPolyPart(const Polygon &, int, int, bool *);
 		bool					isInPolyFull(const Polygon &);
+		static void				segmentPolyPartIntersection(
+									int i, Point &p1, Point &p2,
+									Polygon &poly, Point &res);
 
+		static bool				segmentSegmentIntersection(
+									Point &, Point &, Point &, Point &, Point &);
 	public:
 
 		static constexpr double	PREC = 1e-9;
@@ -36,6 +46,7 @@ namespace RouteStat {
 
 		// operators
 
+		Point &					operator=(const Point &);
 		friend Point			operator+(const Point &, const Point &);
 		friend Point			operator-(const Point &, const Point &);
 		friend Point			operator*(const Point &, const double);
@@ -51,7 +62,7 @@ namespace RouteStat {
 		bool					isNearPoly(const Polygon &) const;
 		bool					isInPoly(const Polygon &);
 
-		static bool				segmentSegmentIntersection(
-									Point &, Point &, Point &, Point &, Point &);
+		static bool				segmentPolyIntersection(
+									Point &, Point &, Polygon &, Point &);
 	};
 }

@@ -7,8 +7,14 @@ namespace RouteStat {
 	// if it is more then about 1000 points in polygon, it is efficient to
 	//   use multiple threads (in general, 8 is enough)
 
-	static const int	START_THREADING = 1000;
-	static const int	THREADS = 8;
+	const int		Point::START_THREADING = 1000;
+	const int		Point::THREADS = 8;
+
+	// latitude and longitude are between -90 and 90, -180 and 180
+
+	const double	Point::NULL_VALUE = 181;
+
+
 
 	Point::Point() = default;
 
@@ -20,6 +26,13 @@ namespace RouteStat {
 
 	void			Point::setLa(double la) { Point::_la = la; }
 	void			Point::setLo(double lo) { Point::_lo = lo; }
+
+	Point &			Point::operator=(const RouteStat::Point &copy) {
+
+		this->_la = copy._la;
+		this->_lo = copy._lo;
+		return (*this);
+	}
 
 	Point			operator+(const Point &p1, const Point &p2) {
 		return (Point(p1._la + p2._la, p1._lo + p2._lo));
@@ -162,5 +175,64 @@ namespace RouteStat {
 
 		inter = p11 + (side[2] / (side[2] - side[3])) * vec1;
 		return (true);
+	}
+
+	void			Point::segmentPolyPartIntersection(
+						int i, Point &p1, Point &p2,
+						Polygon &poly, Point &res) {
+
+		std::vector<Point>	*points;
+
+		points = poly.getPoints();
+		for (int j = i; j < points->size() - 1; j += THREADS) {
+
+			if (segmentSegmentIntersection(
+				p1, p2, (*points)[j], (*points)[j + 1], res))
+				return ;
+		}
+	}
+
+	bool			Point::segmentPolyIntersection(
+						Point &p1, Point &p2, Polygon &poly, Point &res) {
+
+		std::vector<Point>	*points;
+		std::thread			threads[THREADS];
+		Point				results[THREADS];
+
+		if (!p1.isNearPoly(poly) && !p2.isNearPoly(poly))
+			return (false);
+
+		res.setLa(NULL_VALUE);
+		points = poly.getPoints();
+		for (Point &p : results)
+			p.setLa(NULL_VALUE);
+		if (points->size() < START_THREADING) {
+
+			for (int i = 0, j = points->size() - 1; i < points->size(); j = i++) {
+
+				if (segmentSegmentIntersection(
+					p1, p2, (*points)[i], (*points)[j], res))
+					return (true);
+			}
+		}
+		else {
+
+			for (int i = 0; i < THREADS; ++i) {
+				threads[i] = std::thread([&]() {
+					segmentPolyPartIntersection(i, p1, p2, poly, results[i]);
+				});
+			}
+			for (auto &t : threads)
+				t.join();
+			for (Point &p : results) {
+
+				if (p.getLa() != NULL_VALUE) {
+
+					res = p;
+					return (true);
+				}
+			}
+		}
+		return (false);
 	}
 }
