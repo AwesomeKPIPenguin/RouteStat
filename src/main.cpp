@@ -22,8 +22,10 @@ int main(int ac, char **av)
 	Connection		conn(av[1], av[2], av[3]);
 	DB				db(av[4], av[5], av[6], av[7], av[8]);
 
+	map.reserve(10000);
+
 	db.initMap(&map);
-	conn.
+	conn.listen(db, &map);
 
 	return (0);
 }

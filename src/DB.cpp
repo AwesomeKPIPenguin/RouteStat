@@ -6,8 +6,8 @@ namespace RouteStat {
 
 	const std::string	DB::TABLE = "polygons";
 	const std::string	DB::SELECT = "SELECT * FROM " + TABLE;
-	const std::string	DB::INSERT = "INSERT INTO " + TABLE + " (id, polygons)"\
-									 "VALUES($1, '$2')";
+	const std::string	DB::INSERT = "INSERT INTO " + TABLE + " (id, points)"\
+									 "VALUES($1, $2)";
 
 	DB::DB(
 		std::string host,
@@ -27,8 +27,7 @@ namespace RouteStat {
 		+ " password = " + _pass
 		+ " hostaddr = " + _host
 		+ " port = " + _port
-	),
-	_work(_conn) {
+	) {
 
 		if (_conn.is_open())
 			std::cout << "Successfully connected to database '" << _name << "'"
@@ -52,11 +51,19 @@ namespace RouteStat {
 
 		pqxx::result					res;
 		pqxx::result::const_iterator	record;
+		pqxx::work						w(_conn);
 
-		res = _work.exec(SELECT);
+		try {
+			res = w.exec(SELECT);
+			w.commit();
+		} catch (const std::exception &e) {
+			w.abort();
+			throw;
+		}
 		for (record = res.begin(); record != res.end(); ++record)
 			map->emplace_back(
-				record[0].as<int>(), nlohmann::json(record[1].as<std::string>()));
+				record[0].as<int>(), nlohmann::json::parse(
+					record[1].as<std::string>()));
 	}
 
 	void		DB::insert(int id, nlohmann::json points) {
@@ -65,5 +72,6 @@ namespace RouteStat {
 
 		_conn.prepare("insert", INSERT);
 		t.prepared("insert")(id)(points.dump()).exec();
+		t.commit();
 	}
 }

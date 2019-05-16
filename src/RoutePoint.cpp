@@ -22,7 +22,9 @@ namespace RouteStat {
 	double	RoutePoint::getLat() const { return (_point.getLa()); }
 	double	RoutePoint::getLong() const { return (_point.getLo()); }
 	Point &	RoutePoint::getPoint() { return (_point); }
+	int		RoutePoint::getDist() const { return (_dist); }
 	time_t	RoutePoint::getTime() const { return _time; }
+	int		RoutePoint::getDuration() const	{ return (_duration); }
 
 	void	RoutePoint::setLat(double _lat) { _point.setLa(_lat); }
 	void	RoutePoint::setLong(double _long) { _point.setLo(_long); }

@@ -23,7 +23,6 @@ namespace RouteStat {
 		std::string			_user;
 		std::string			_pass;
 		pqxx::connection	_conn;
-		pqxx::work			_work;
 
 	public:
 

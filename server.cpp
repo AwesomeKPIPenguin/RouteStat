@@ -1,8 +1,10 @@
 
+#include <iostream>
 #include <zmq.hpp>
 #include <json.hpp>
 #include <zconf.h>
 
+using namespace std;
 using namespace zmq;
 using namespace nlohmann;
 
@@ -16,6 +18,7 @@ int		main() {
 
 	pubs.bind("tcp://127.0.0.1:6000");
 	subs.connect("tcp://127.0.0.1:5000");
+	subs.setsockopt(ZMQ_SUBSCRIBE, "", 0);
 
 	points = "["\
 		"{"\
@@ -35,4 +38,16 @@ int		main() {
 
 	sleep(5);
 	pubs.send(msg);
+
+	str = "["\
+		"[1,  -1,   0, \"14:33:21\", 52401],"\
+		"[1.5, 1.5, 4, \"14:33:24\", 52404],"\
+		"[2,   4,   2, \"14:33:25\", 52405]"\
+	"]\0";
+
+	msg = message_t(str.c_str(), str.length() + 1);
+	pubs.send(msg);
+
+	subs.recv(&msg);
+	cout << "Received back:" << endl << (char *)msg.data() << endl;
 }

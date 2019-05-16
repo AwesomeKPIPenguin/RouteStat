@@ -31,7 +31,9 @@ namespace RouteStat {
 		double		getLat() const;
 		double		getLong() const;
 		Point &		getPoint();
+		int			getDist() const;
 		time_t		getTime() const;
+		int			getDuration() const;
 
 		void		setLat(double _lat);
 		void		setLong(double _long);

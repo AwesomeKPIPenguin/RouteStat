@@ -51,6 +51,25 @@ namespace RouteStat {
 		time_t	time;
 		tm		tm;
 
+		std::cout << "Adding point " << inter << std::endl;
+
+		if (position == " ") {
+
+			time = p1.getTime();
+			tm = *localtime(&time);
+			strftime(timeStr, 8, "%H:%M:%S", &tm);
+
+			_res.emplace_back(json::array({
+				inter.getLa(),
+				inter.getLo(),
+				p1.getDuration(),
+				timeStr,
+				0,
+				(id >= 0) ? std::to_string(id) : "",
+				position
+			}));
+			return ;
+		}
 		len = p1.getPoint().getDist(p2.getPoint());
 		dist = p1.getPoint().getDist(inter);
 		time = (size_t)(p1.getTime() + (double)p1.getTime() * dist / len);
@@ -85,7 +104,10 @@ namespace RouteStat {
 		while (true) {
 
 			_subs.recv(&msg);
-			json = nlohmann::json((char *)msg.data());
+
+			std::cout << "Received:" << std::endl << (char *)msg.data() << std::endl;
+
+			json = nlohmann::json::parse((char *)msg.data());
 			if (json[0].is_array())
 				handleRoute(map, json);
 			else
@@ -126,9 +148,10 @@ namespace RouteStat {
 				}
 			}
 		}
-
 		map->emplace_back(poly);
 		db.insert(poly.getId(), json[0]["coords"][0]);
+		std::cout << "Polygon '" << poly.getId() << "' successfully added"
+				  << std::endl;
 	}
 
 	void	Connection::handleRoute(std::vector<Polygon> *map, json json) {
@@ -147,6 +170,9 @@ namespace RouteStat {
 				break ;
 			}
 		}
+		addPoint(
+			segment[0], segment[1], segment[0].getPoint(),
+			(currPoly) ? currPoly->getId() : -1, " ");
 		for (int i = 1; i < json.size(); ++i) {
 
 			segment[0] = segment[1];
