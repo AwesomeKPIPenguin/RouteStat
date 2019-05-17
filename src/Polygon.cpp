@@ -35,11 +35,9 @@ namespace RouteStat {
 				_maxLo = p.getLo();
 
 			// checks if the third point is on one line with two previous -
-			//   middle one is removed then due to it's redundancy
+			// middle one is removed then due to it's redundancy
 
 			if (prev2 && p.isInLine(*prev2, *prev1)) {
-
-				std::cout << "DROPPED" << std::endl;
 
 				_points->pop_back();
 				prev1 = &_points->back();
@@ -73,11 +71,16 @@ namespace RouteStat {
 
 	bool					Polygon::isInterPoly(const Polygon &poly) const {
 
+		std::vector<Point>	*points;
+
 		if (!poly.isNear(*this))
 			return (false);
 
-		for (Point point : *(this->getPoints())) {
+		points = poly.getPoints();
+		for (Point &point : *(this->getPoints())) {
 
+			if (point.isOnPolyBorder(poly))
+				continue ;
 			if (point.isInPoly(poly)) {
 
 				std::cerr << "ERROR HANDLING POLYGON: received polygon has "
@@ -85,8 +88,10 @@ namespace RouteStat {
 				return (true);
 			}
 		}
-		for (Point point : *(poly.getPoints())) {
+		for (Point &point : *(poly.getPoints())) {
 
+			if (point.isOnPolyBorder(*this))
+				continue ;
 			if (point.isInPoly(*this)) {
 
 				std::cerr << "ERROR HANDLING POLYGON: received polygon has "

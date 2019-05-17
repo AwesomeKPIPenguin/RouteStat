@@ -6,10 +6,10 @@
 using namespace std;
 using namespace RouteStat;
 
-	// av: host, pub port, sub port, db host, db port, db name, db user, db password
-	// test example: 127.0.0.1 5000 6000 127.0.0.1 5432 map postgres postgres
+// av: host, pub port, sub port, db host, db port, db name, db user, db password
+// test example: 127.0.0.1 5000 6000 127.0.0.1 5432 map postgres postgres
 
-int main(int ac, char **av)
+int		main(int ac, char **av)
 {
 	vector<Polygon> map;
 

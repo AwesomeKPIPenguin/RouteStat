@@ -30,14 +30,14 @@ namespace RouteStat {
 	) {
 
 		if (_conn.is_open())
-			std::cout << "Successfully connected to database '" << _name << "'"
+			std::cout << "Successfully connected to database     ["
+					  << _host << ":" << _port << "/" << _name << "]"
 					  << std::endl;
 		else
 			std::cout << "DATABASE CONNECTION ERROR: failed to connect "
-					  << "to database '" << _name << "'" << std::endl;
+					  << "to database [" << _host << ":" << _port << "/"
+					  << _name << "]" << std::endl;
 	}
-
-	// getters
 
 	std::string	DB::getHost() const { return (_host); }
 	std::string	DB::getPort() const { return (_port); }
@@ -45,7 +45,7 @@ namespace RouteStat {
 	std::string	DB::getUser() const { return (_user); }
 	std::string	DB::getPass() const { return (_pass); }
 
-	// logic
+
 
 	void		DB::initMap(std::vector<Polygon> * map) {
 

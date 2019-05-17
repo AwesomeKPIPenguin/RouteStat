@@ -5,10 +5,10 @@ namespace RouteStat {
 
 	const std::string	Connection::PROTOCOL = "tcp";
 
-	void	Connection::checkConnections() {
+	void		Connection::checkConnections() {
 
 		if (_subs.connected())
-			std::cout << "Successfully subscribed to         ["
+			std::cout << "Successfully subscribed to             ["
 					  << PROTOCOL << "://" << _host << ":" << _sub << "]"
 					  << std::endl;
 		else
@@ -16,7 +16,7 @@ namespace RouteStat {
 					  << PROTOCOL << "://" << _host << ":" << _sub << "]"
 					  << std::endl;
 		if (_pubs.connected())
-			std::cout << "Successfully binded publisher to   ["
+			std::cout << "Successfully binded publisher to       ["
 					  << PROTOCOL << "://" << _host << ":" << _pub << "]"
 					  << std::endl;
 		else
@@ -41,22 +41,19 @@ namespace RouteStat {
 		checkConnections();
 	}
 
-	void	Connection::addPoint(
-				RoutePoint p1, RoutePoint p2,
-				Point &inter, int id, std::string position) {
+	void		Connection::addPoint(
+					RoutePoint p1, RoutePoint p2,
+					Point &inter, int id, std::string position) {
 
 		double	dist;
 		double	len;
 		char	timeStr[10];
 		time_t	t[3];
 
-		std::cout << "Adding point " << inter << std::endl;
-
 		bzero(timeStr, 10);
 		if (position == " ") {
 
 			strftime(timeStr, 10, "%H:%M:%S", p1.getTime());
-
 			_res.emplace_back(json::array({
 				inter.getLa(),
 				inter.getLo(),
@@ -85,7 +82,7 @@ namespace RouteStat {
 		}));
 	}
 
-	void	Connection::send() {
+	void		Connection::send() {
 
 		zmq::message_t	msg;
 		std::string		str;
@@ -95,17 +92,28 @@ namespace RouteStat {
 		_pubs.send(msg);
 	}
 
-	void	Connection::listen(DB &db, std::vector<Polygon> *map) {
+	void		Connection::listenForExit() {
 
-		zmq::message_t	msg;
-		json			json;
+		std::string		input;
 
 		while (true) {
 
+			std::cin >> input;
+			if (input == "exit")
+				exit(EXIT_SUCCESS);
+		}
+	}
+
+	void		Connection::listen(DB &db, std::vector<Polygon> *map) {
+
+		std::thread		thread;
+		zmq::message_t	msg;
+		json			json;
+
+		thread = std::thread([&]() { listenForExit(); });
+		while (true) {
+
 			_subs.recv(&msg);
-
-			std::cout << "Received:" << std::endl << (char *)msg.data() << std::endl;
-
 			json = nlohmann::json::parse((char *)msg.data());
 			if (json[0].is_array())
 				handleRoute(map, json);
@@ -114,8 +122,8 @@ namespace RouteStat {
 		}
 	}
 
-	void	Connection::handlePolygon(
-				DB &db, std::vector<Polygon> *map, json json) {
+	void		Connection::handlePolygon(
+					DB &db, std::vector<Polygon> *map, json json) {
 
 		Polygon	poly;
 
@@ -133,70 +141,98 @@ namespace RouteStat {
 				  << std::endl;
 	}
 
-	void	Connection::handleRoute(std::vector<Polygon> *map, json json) {
+	Polygon *	Connection::handleRouteEndPoint(
+					std::vector<Polygon> *map, RoutePoint &rp) {
+
+		Polygon	*res;
+
+		res = nullptr;
+		for (Polygon &poly : *map) {
+
+			if (rp.getPoint().isInPoly(poly)) {
+
+				res = &poly;
+				break ;
+			}
+		}
+		addPoint(
+			rp, rp, rp.getPoint(), (res) ? res->getId() : -1, " ");
+		return (res);
+	}
+
+	void		Connection::handleRouteInside(
+					RoutePoint &p1, RoutePoint &p2,
+					Polygon **cp, std::vector<Polygon> *map) {
+
+		bool	foundNeighbor;
+		Point	res;
+
+		foundNeighbor = false;
+		if (Point::segmentPolyIntersection(
+			p1.getPoint(), p2.getPoint(), **cp, res)) {
+
+			addPoint(p1, p2, res, (*cp)->getId(), "OUT");
+			for (Polygon &poly : *map) {
+
+				if (&poly == (*cp))
+					continue ;
+				if (p2.getPoint().isInPoly(poly)) {
+
+					(*cp) = &poly;
+					foundNeighbor = true;
+					addPoint(p1, p2, res, (*cp)->getId(), "IN");
+					break ;
+				}
+			}
+			if (!foundNeighbor)
+				*cp = nullptr;
+		}
+	}
+
+	void		Connection::handleRouteOutside(
+					RoutePoint &p1, RoutePoint &p2,
+					Polygon **cp, std::vector<Polygon> *map) {
+
+		Point		res;
+
+		for (Polygon &poly : *map) {
+
+			if (!p1.getPoint().isNearPoly(poly)
+				&& !p2.getPoint().isNearPoly(poly))
+				continue ;
+
+			if (Point::segmentPolyIntersection(
+				p1.getPoint(), p2.getPoint(), poly, res)) {
+
+				*cp = &poly;
+				addPoint(p1, p2, res, (*cp)->getId(), "IN");
+				break ;
+			}
+		}
+	}
+
+	void		Connection::handleRoute(std::vector<Polygon> *map, json json) {
 
 		Polygon		*currPoly;
 		RoutePoint	segment[2];
-		Point		res;
+
+		std::cout << "Accepted new route" << std::endl;
 
 		currPoly = nullptr;
 		segment[0] = RoutePoint(json[0]);
 		segment[1] = segment[0];
 
-		currPoly = RoutePoint::handleRouteEndPoint(this, map, segment[0]);
-
+		currPoly = handleRouteEndPoint(map, segment[0]);
 		for (int i = 1; i < json.size(); ++i) {
 
 			segment[0] = segment[1];
 			segment[1] = RoutePoint(json[i]);
-
-			std::cout << "segment part 1: " << segment[0] << std::endl;
-			std::cout << "segment part 2: " << segment[1] << std::endl;
-
-			if (currPoly) {
-
-				if (!segment[0].getPoint().isNearPoly(*currPoly)
-					&& !segment[1].getPoint().isNearPoly(*currPoly))
-					continue ;
-
-				if (Point::segmentPolyIntersection(
-					segment[0].getPoint(), segment[1].getPoint(), *currPoly, res)) {
-
-					addPoint(segment[0], segment[1], res, currPoly->getId(), "OUT");
-					currPoly = nullptr;
-					for (Polygon &poly : *map) {
-
-						if (&poly == currPoly)
-							continue ;
-
-						if (segment[1].getPoint().isInPoly(poly)) {
-
-							currPoly = &poly;
-							addPoint(segment[0], segment[1], res, currPoly->getId(), "IN");
-							break ;
-						}
-					}
-				}
-
-			}
-			else {
-
-				for (Polygon &poly : *map) {
-
-					if (!segment[0].getPoint().isNearPoly(poly)
-						&& !segment[1].getPoint().isNearPoly(poly))
-						continue ;
-
-					if (Point::segmentPolyIntersection(
-						segment[0].getPoint(), segment[1].getPoint(), poly, res)) {
-
-						currPoly = &poly;
-						addPoint(segment[0], segment[1], res, currPoly->getId(), "IN");
-						break ;
-					}
-				}
-			}
+			if (currPoly)
+				handleRouteInside(segment[0], segment[1], &currPoly, map);
+			else
+				handleRouteOutside(segment[0], segment[1], &currPoly, map);
 		}
+		handleRouteEndPoint(map, segment[1]);
 		send();
 	}
 }

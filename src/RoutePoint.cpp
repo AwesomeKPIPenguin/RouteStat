@@ -15,7 +15,6 @@ namespace RouteStat {
 	  _duration(json[4].get<int>()) {
 
 		strptime(json[3].get<std::string>().c_str(), "%H:%M:%S", &_time);
-		std::cout << "Parsed time: " << asctime(&_time) << std::endl;
 	}
 
 	double			RoutePoint::getLat() const { return (_point.getLa()); }
@@ -41,28 +40,5 @@ namespace RouteStat {
 						  << "\"" << timestr << "\"" << ", "
 						  << p._duration
 				   << "]");
-	}
-
-
-
-	Polygon *		RoutePoint::handleRouteEndPoint(
-						Connection *conn,
-						std::vector<Polygon> *map,
-						RoutePoint &rp) {
-
-		Polygon	*res;
-
-		res = nullptr;
-		for (Polygon &poly : *map) {
-
-			if (rp.getPoint().isInPoly(poly)) {
-
-				res = &poly;
-				break ;
-			}
-		}
-		conn->addPoint(
-			rp, rp, rp.getPoint(), (res) ? res->getId() : -1, " ");
-		return (res);
 	}
 }

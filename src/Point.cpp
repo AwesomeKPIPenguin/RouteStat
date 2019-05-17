@@ -5,7 +5,7 @@
 namespace RouteStat {
 
 	// if it is more then about 1000 points in polygon, it is efficient to
-	//   use multiple threads (in general, 8 is enough)
+	// use multiple threads (in general, 8 is enough)
 
 	const int		Point::START_THREADING = 1000;
 	const int		Point::THREADS = 8;
@@ -27,12 +27,7 @@ namespace RouteStat {
 	void			Point::setLa(double la) { Point::_la = la; }
 	void			Point::setLo(double lo) { Point::_lo = lo; }
 
-	Point &			Point::operator=(const RouteStat::Point &copy) {
-
-		this->_la = copy._la;
-		this->_lo = copy._lo;
-		return (*this);
-	}
+	Point &			Point::operator=(const RouteStat::Point &copy) = default;
 
 	Point			operator+(const Point &p1, const Point &p2) {
 		return (Point(p1._la + p2._la, p1._lo + p2._lo));
@@ -78,29 +73,31 @@ namespace RouteStat {
 	}
 
 	void			Point::isInPolyPart(
-						const Polygon & poly, int from, int to, bool * res) {
+						const Polygon & poly, int i, bool *res) const {
 
 		std::vector<Point> *	points;
 
 		*res = false;
-
 		points = poly.getPoints();
-		for (int i = from + 1, j = from; i < to; j = i++) {
+		if (i == 0 && (((*points)[0]._lo > _lo) != ((*points)[points->size() - 1]._lo > _lo))
+			&& (_la < ((*points)[points->size() - 1]._la - (*points)[0]._la) * (_lo - (*points)[0]._lo)
+				/ ((*points)[points->size() - 1]._lo - (*points)[0]._lo) + (*points)[0]._la))
+			*res = !*res;
+		for (int j = i; j < points->size() - 1; j += THREADS) {
 
-			if ((((*points)[i]._lo > _lo) != ((*points)[j]._lo > _lo))
-			&& (_la < ((*points)[j]._la - (*points)[i]._la) * (_lo - (*points)[i]._lo)
-				/ ((*points)[j]._lo - (*points)[i]._lo) + (*points)[i]._la))
+			if ((((*points)[j]._lo > _lo) != ((*points)[j + 1]._lo > _lo))
+			&& (_la < ((*points)[j + 1]._la - (*points)[j]._la) * (_lo - (*points)[j]._lo)
+				/ ((*points)[j + 1]._lo - (*points)[j]._lo) + (*points)[j]._la))
 			*res = !*res;
 		}
 	}
 
-	bool			Point::isInPolyFull(const Polygon & poly) {
+	bool			Point::isInPolyFull(const Polygon & poly) const {
 
 		bool					res;
-		std::vector<Point> *	points;
+		std::vector<Point>		*points;
 
 		res = false;
-
 		points = poly.getPoints();
 		for (int i = 0, j = points->size() - 1; i < points->size(); j = i++) {
 
@@ -112,13 +109,11 @@ namespace RouteStat {
 		return (res);
 	}
 
-	bool			Point::isInPoly(const Polygon & poly) {
+	bool			Point::isInPoly(const Polygon & poly) const {
 
 		std::thread		threads[THREADS];
 		bool			res[THREADS];
 		unsigned long	len;
-		int				part;
-		int				to;
 
 		if (!isNearPoly(poly))
 			return (false);
@@ -126,12 +121,10 @@ namespace RouteStat {
 		len = poly.getPoints()->size();
 		if (len > START_THREADING) {
 
-			part = len / THREADS;
 			for (int i = 0; i < THREADS; ++i) {
 
-				to = (i == THREADS - 1) ? len : (i + 1) * part;
 				threads[i] = std::thread([&]() {
-					isInPolyPart(poly, i * part, to, &res[i]);
+					isInPolyPart(poly, i, &res[i]);
 				});
 			}
 			for (int i = 0; i < THREADS; ++i)
@@ -144,6 +137,17 @@ namespace RouteStat {
 		else {
 			return (isInPolyFull(poly));
 		}
+	}
+
+	bool			Point::isOnPolyBorder(const Polygon &poly) const {
+
+		std::vector<Point>	*points;
+
+		points = poly.getPoints();
+		for (int i = 0, j = points->size() - 1; i < points->size(); j = i++)
+			if (isInLine((*points)[j], (*points)[i]))
+				return (true);
+		return (false);
 	}
 
 	bool			Point::segmentSegmentIntersection(
@@ -210,14 +214,9 @@ namespace RouteStat {
 
 			for (int i = 0, j = points->size() - 1; i < points->size(); j = i++) {
 
-				std::cout << p1 << "-" << p2 << " X " << (*points)[i] << "-" << (*points)[j] << " -> ";
 				if (segmentSegmentIntersection(
-					p1, p2, (*points)[i], (*points)[j], res)) {
-					std::cout << res << std::endl;
+					p1, p2, (*points)[i], (*points)[j], res))
 					return (true);
-				}
-				else
-					std::cout << "null" << std::endl;
 			}
 		}
 		else {

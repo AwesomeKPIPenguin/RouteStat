@@ -3,8 +3,9 @@
 
 #include <time.h>
 #include <ctime>
+#include <json.hpp>
 
-#include "Connection.hpp"
+#include "Point.hpp"
 
 namespace RouteStat {
 
@@ -23,7 +24,7 @@ namespace RouteStat {
 		RoutePoint();
 		RoutePoint(
 			double la, double lo, int dist, tm &time, int duration);
-		RoutePoint(nlohmann::json json);
+		explicit RoutePoint(nlohmann::json json);
 
 		// operators
 
@@ -41,11 +42,5 @@ namespace RouteStat {
 		void					setLat(double la);
 		void					setLong(double lo);
 		void					setTime(tm &time);
-
-		// logic
-
-		static Polygon *		handleRouteEndPoint(
-									Connection *conn, std::vector<Polygon> *map,
-									RoutePoint &rp);
 	};
 }

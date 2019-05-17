@@ -21,12 +21,13 @@ namespace RouteStat {
 		double					_la;
 		double					_lo;
 
-		void					isInPolyPart(const Polygon &, int, int, bool *);
-		bool					isInPolyFull(const Polygon &);
+		void					isInPolyPart(
+									const Polygon &poly, int i, bool *res) const;
+		bool					isInPolyFull(const Polygon &poly) const;
+
 		static void				segmentPolyPartIntersection(
 									int i, Point &p1, Point &p2,
 									Polygon &poly, Point &res);
-
 		static bool				segmentSegmentIntersection(
 									Point &, Point &, Point &, Point &, Point &);
 	public:
@@ -56,11 +57,12 @@ namespace RouteStat {
 		// geometry
 
 		double					len() const;
-		double					dot(const Point &) const;
-		double					getDist(const Point &) const;
-		bool					isInLine(const Point &, const Point &) const;
-		bool					isNearPoly(const Polygon &) const;
-		bool					isInPoly(const Polygon &);
+		double					dot(const Point &p) const;
+		double					getDist(const Point &p) const;
+		bool					isInLine(const Point &p1, const Point &p2) const;
+		bool					isNearPoly(const Polygon &poly) const;
+		bool					isInPoly(const Polygon &poly) const;
+		bool					isOnPolyBorder(const Polygon &poly) const;
 
 		static bool				segmentPolyIntersection(
 									Point &, Point &, Polygon &, Point &);
