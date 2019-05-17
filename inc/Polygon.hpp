@@ -39,6 +39,7 @@ namespace RouteStat {
 
 		// logic
 
-		bool					isNear(const Polygon &) const;
+		bool					isNear(const Polygon &poly) const;
+		bool					isInterPoly(const Polygon &poly) const;
 	};
 }

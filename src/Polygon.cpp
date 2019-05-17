@@ -70,4 +70,30 @@ namespace RouteStat {
 			&& ((_minLo <= p._maxLo && _minLo >= p._minLo)
 				|| (_maxLo <= p._maxLo && _maxLo >= p._minLo)));
 	}
+
+	bool					Polygon::isInterPoly(const Polygon &poly) const {
+
+		if (!poly.isNear(*this))
+			return (false);
+
+		for (Point point : *(this->getPoints())) {
+
+			if (point.isInPoly(poly)) {
+
+				std::cerr << "ERROR HANDLING POLYGON: received polygon has "
+						  << "intersections with present map" << std::endl;
+				return (true);
+			}
+		}
+		for (Point point : *(poly.getPoints())) {
+
+			if (point.isInPoly(*this)) {
+
+				std::cerr << "ERROR HANDLING POLYGON: received polygon has "
+						  << "intersections with present map" << std::endl;
+				return (true);
+			}
+		}
+		return (false);
+	}
 }

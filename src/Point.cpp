@@ -210,9 +210,14 @@ namespace RouteStat {
 
 			for (int i = 0, j = points->size() - 1; i < points->size(); j = i++) {
 
+				std::cout << p1 << "-" << p2 << " X " << (*points)[i] << "-" << (*points)[j] << " -> ";
 				if (segmentSegmentIntersection(
-					p1, p2, (*points)[i], (*points)[j], res))
+					p1, p2, (*points)[i], (*points)[j], res)) {
+					std::cout << res << std::endl;
 					return (true);
+				}
+				else
+					std::cout << "null" << std::endl;
 			}
 		}
 		else {

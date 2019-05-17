@@ -1,28 +1,30 @@
 
 #include <fstream>
-#include <ctime>
-#include <iomanip>
-#include <chrono>
-#include <thread>
 #include <iostream>
-#include <cmath>
+#include <json.hpp>
 
 using namespace std;
+using namespace nlohmann;
 
-int main() {
+int		main() {
 
-	char	buff[10];
-	time_t	time;
+	ofstream	out;
+	ifstream	in;
+	string		str;
+	json		j;
+	json		res;
 
-	time = chrono::system_clock::to_time_t(chrono::system_clock::now());
-	tm tm = *localtime(&time);
-	strftime(buff, 10, "%H:%M:%S", &tm);
-	cout << buff << endl;
-
-	tm.tm_sec += 180;
-	mktime(&tm);
-	strftime(buff, 10, "%H:%M:%S", &tm);
-	cout << buff << endl;
+	in.open("track_example.txt");
+	in >> str;
+	for (char &c : str)
+		if (c == '\'')
+			c = '"';
+	j = json::parse(str);
+	for (auto &arr : j)
+		res.emplace_back(json::array({arr[0], arr[1]}));
+	cout << res.dump() << endl;
+	out.open("track_points.txt");
+	out << res.dump();
 
 	return (0);
 }

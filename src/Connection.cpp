@@ -47,24 +47,22 @@ namespace RouteStat {
 
 		double	dist;
 		double	len;
-		char	timeStr[8];
-		time_t	time;
-		tm		tm;
+		char	timeStr[10];
+		time_t	t[3];
 
 		std::cout << "Adding point " << inter << std::endl;
 
+		bzero(timeStr, 10);
 		if (position == " ") {
 
-			time = p1.getTime();
-			tm = *localtime(&time);
-			strftime(timeStr, 8, "%H:%M:%S", &tm);
+			strftime(timeStr, 10, "%H:%M:%S", p1.getTime());
 
 			_res.emplace_back(json::array({
 				inter.getLa(),
 				inter.getLo(),
-				p1.getDuration(),
+				p1.getDist(),
 				timeStr,
-				0,
+				p1.getDuration(),
 				(id >= 0) ? std::to_string(id) : "",
 				position
 			}));
@@ -72,15 +70,16 @@ namespace RouteStat {
 		}
 		len = p1.getPoint().getDist(p2.getPoint());
 		dist = p1.getPoint().getDist(inter);
-		time = (size_t)(p1.getTime() + (double)p1.getTime() * dist / len);
-		tm = *localtime(&time);
-		strftime(timeStr, 8, "%H:%M:%S", &tm);
+		t[0] = mktime(p1.getTime());
+		t[1] = mktime(p2.getTime());
+		t[2] = (time_t)(t[0] + difftime(t[1], t[0]) * dist / len);
+		strftime(timeStr, 10, "%H:%M:%S", localtime(&t[2]));
 		_res.emplace_back(json::array({
 			inter.getLa(),
 			inter.getLo(),
 			(int)(dist * 10e5),
 			timeStr,
-			time - p1.getTime(),
+			(int)(p1.getDuration() + difftime(t[2], t[0])),
 			(id >= 0) ? std::to_string(id) : "",
 			position
 		}));
@@ -124,30 +123,10 @@ namespace RouteStat {
 			std::stoi(json[0]["name"].get<std::string>()),
 			json[0]["coords"][0]);
 
-		for (Polygon p : *map) {
+		for (Polygon p : *map)
+			if (poly.isInterPoly(p))
+				return ;
 
-			if (!poly.isNear(p))
-				continue ;
-
-			for (Point point : *(p.getPoints())) {
-
-				if (point.isInPoly(poly)) {
-
-					std::cerr << "ERROR HANDLING POLYGON: received polygon has "
-							  << "intersections with present map" << std::endl;
-					return ;
-				}
-			}
-			for (Point point : *(poly.getPoints())) {
-
-				if (point.isInPoly(p)) {
-
-					std::cerr << "ERROR HANDLING POLYGON: received polygon has "
-							  << "intersections with present map" << std::endl;
-					return ;
-				}
-			}
-		}
 		map->emplace_back(poly);
 		db.insert(poly.getId(), json[0]["coords"][0]);
 		std::cout << "Polygon '" << poly.getId() << "' successfully added"
@@ -162,21 +141,17 @@ namespace RouteStat {
 
 		currPoly = nullptr;
 		segment[0] = RoutePoint(json[0]);
-		for (Polygon &poly : *map) {
+		segment[1] = segment[0];
 
-			if (segment[0].getPoint().isInPoly(poly)) {
+		currPoly = RoutePoint::handleRouteEndPoint(this, map, segment[0]);
 
-				currPoly = &poly;
-				break ;
-			}
-		}
-		addPoint(
-			segment[0], segment[1], segment[0].getPoint(),
-			(currPoly) ? currPoly->getId() : -1, " ");
 		for (int i = 1; i < json.size(); ++i) {
 
 			segment[0] = segment[1];
 			segment[1] = RoutePoint(json[i]);
+
+			std::cout << "segment part 1: " << segment[0] << std::endl;
+			std::cout << "segment part 2: " << segment[1] << std::endl;
 
 			if (currPoly) {
 
