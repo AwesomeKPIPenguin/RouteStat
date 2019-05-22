@@ -2,7 +2,6 @@
 #pragma once
 
 #include <string>
-#include <zconf.h>
 #include <zmq.hpp>
 
 #include "DB.hpp"

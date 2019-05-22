@@ -37,7 +37,7 @@ namespace RouteStat {
 		_pubs.bind(PROTOCOL + "://" + _host + ":" + _pub);
 		_subs.connect(PROTOCOL + "://" + _host + ":" + _sub);
 		_subs.setsockopt(ZMQ_SUBSCRIBE, "", 0);
-		usleep(100);
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		checkConnections();
 	}
 
