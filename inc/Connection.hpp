@@ -22,7 +22,6 @@ namespace RouteStat {
 		zmq::context_t	_context;
 		zmq::socket_t	_subs;
 		zmq::socket_t	_pubs;
-		json			_res;
 
 		void			checkConnections();
 		void			listenForExit();
