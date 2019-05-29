@@ -31,8 +31,7 @@ namespace RouteStat {
 		  _sub(std::move(sub)),
 		  _context(zmq::context_t(1)),
 		  _pubs(zmq::socket_t(_context, ZMQ_PUB)),
-		  _subs(zmq::socket_t(_context, ZMQ_SUB)),
-		  _res("[]"_json) {
+		  _subs(zmq::socket_t(_context, ZMQ_SUB)) {
 
 		_pubs.bind(PROTOCOL + "://" + _host + ":" + _pub);
 		_subs.connect(PROTOCOL + "://" + _host + ":" + _sub);
@@ -41,12 +40,12 @@ namespace RouteStat {
 		checkConnections();
 	}
 
-	void		Connection::send() {
+	void		Connection::send(json &respond) {
 
 		zmq::message_t	msg;
 		std::string		str;
 
-		str = _res.dump();
+		str = respond.dump();
 		msg = zmq::message_t(str.c_str(), str.length());
 		_pubs.send(msg);
 	}
@@ -69,15 +68,24 @@ namespace RouteStat {
 		zmq::message_t	msg;
 		json			json;
 
+		Handlers::flush();
 		thread = std::thread([&]() { listenForExit(); });
 		while (true) {
 
 			_subs.recv(&msg);
 			json = nlohmann::json::parse((char *)msg.data());
-			if (json[0].is_array())
-				handleRoute(map, json);
-			else
-				handlePolygon(db, map, json);
+			if (json[0].is_array()) {
+
+				Handlers::handleRoute(map, json);
+				send(Handlers::getRes());
+				Handlers::flush();
+			}
+			else if (Handlers::handlePolygon(map, json)) {
+
+				db.insert(map->back().getId(), json[0]["coords"][0]);
+				std::cout << "Polygon '" << map->back().getId()
+						  << "' successfully added" << std::endl;
+			}
 		}
 	}
 

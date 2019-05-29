@@ -73,6 +73,13 @@ namespace RouteStat {
 
 		std::vector<Point>	*points;
 
+		if (_id == poly._id) {
+
+			std::cerr << "ERROR HANDLING POLYGON: polygon with id '" << _id
+					  << "' already exists" << std::endl;
+			return (true);
+		}
+
 		if (!poly.isNear(*this))
 			return (false);
 

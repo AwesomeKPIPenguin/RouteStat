@@ -3,6 +3,16 @@
 
 namespace RouteStat {
 
+	json	Handlers::_res = "[]"_json;
+
+
+
+	json	&Handlers::getRes() { return (_res); }
+
+	void	Handlers::flush() { _res = "[]"_json; }
+
+
+
 	void	Handlers::addPoint(
 				RoutePoint p1, RoutePoint p2,
 				Point &inter, int id, const std::string &position) {
@@ -48,9 +58,9 @@ namespace RouteStat {
 		);
 	}
 
-	json	Handlers::handlePolygon(std::vector <Polygon> *map, json json) {
+	bool	Handlers::handlePolygon(std::vector <Polygon> *map, json &json) {
 
-        Polygon poly;
+        Polygon	poly;
 
         poly = Polygon(
             std::stoi(json[0]["name"].get<std::string>()),
@@ -58,19 +68,16 @@ namespace RouteStat {
 
         for (Polygon p : *map)
             if (poly.isInterPoly(p))
-                return (""_json);
+                return (false);
 
         map->emplace_back(poly);
-        return (json[0]["coords"][0]);
-//        db.insert(poly.getId(), json[0]["coords"][0]);
-//        std::cout << "Polygon '" << poly.getId() << "' successfully added"
-//                  << std::endl;
+        return (true);
     }
 
-    void	*Handlers::handleRouteEndPoint(
+    Polygon	*Handlers::handleRouteEndPoint(
 				std::vector <Polygon> *map, RoutePoint &rp) {
 
-        Polygon *res;
+        Polygon	*res;
 
         res = nullptr;
         for (Polygon &poly : *map) {
@@ -83,14 +90,15 @@ namespace RouteStat {
         }
         addPoint(
         	rp, rp, rp.getPoint(), (res) ? res->getId() : -1, " ");
+        return (res);
     }
 
     void	Handlers::handleRouteInside(
 				RoutePoint &p1, RoutePoint &p2,
 				Polygon **cp, std::vector <Polygon> *map) {
 
-        bool foundNeighbor;
-        Point res;
+        bool	foundNeighbor;
+        Point	res;
 
         foundNeighbor = false;
         if (Point::segmentPolyIntersection(
@@ -118,7 +126,7 @@ namespace RouteStat {
 				RoutePoint &p1, RoutePoint &p2,
 				Polygon **cp, std::vector <Polygon> *map) {
 
-        Point res;
+        Point	res;
 
         for (Polygon &poly : *map) {
 
@@ -136,10 +144,10 @@ namespace RouteStat {
         }
     }
 
-    void	Handlers::handleRoute(std::vector <Polygon> *map, json json) {
+    void	Handlers::handleRoute(std::vector <Polygon> *map, json &json) {
 
-        Polygon *currPoly;
-        RoutePoint segment[2];
+        Polygon		*currPoly;
+        RoutePoint	segment[2];
 
         std::cout << "Accepted new route" << std::endl;
 
@@ -158,6 +166,5 @@ namespace RouteStat {
                 handleRouteOutside(segment[0], segment[1], &currPoly, map);
         }
         handleRouteEndPoint(map, segment[1]);
-//        send();
     }
 }

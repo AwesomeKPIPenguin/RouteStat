@@ -14,6 +14,8 @@ namespace RouteStat {
 	private:
 
 		static const std::string	TABLE;
+		static const std::string	IS_TABLE_EXISTS;
+		static const std::string	CREATE_TABLE;
 		static const std::string	SELECT;
 		static const std::string	INSERT;
 
@@ -23,6 +25,8 @@ namespace RouteStat {
 		std::string			_user;
 		std::string			_pass;
 		pqxx::connection	_conn;
+
+		void				initTable();
 
 	public:
 

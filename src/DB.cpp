@@ -5,9 +5,13 @@
 namespace RouteStat {
 
 	const std::string	DB::TABLE = "polygons";
-	const std::string	DB::SELECT = "SELECT * FROM " + TABLE;
+	const std::string	DB::IS_TABLE_EXISTS = "SELECT to_regclass('" + TABLE + "');";
+	const std::string	DB::CREATE_TABLE = "CREATE TABLE " + TABLE + " ("\
+	"id INTEGER PRIMARY KEY NOT NULL,"\
+	"points JSON NOT NULL);";
+	const std::string	DB::SELECT = "SELECT * FROM " + TABLE + ";";
 	const std::string	DB::INSERT = "INSERT INTO " + TABLE + " (id, points)"\
-									 "VALUES($1, $2)";
+									 "VALUES($1, $2);";
 
 	DB::DB(
 		std::string host,
@@ -32,7 +36,7 @@ namespace RouteStat {
 		if (_conn.is_open())
 			std::cout << "Successfully connected to database     ["
 					  << _host << ":" << _port << "/" << _name << "]"
-					  << std::endl;
+					  << std::endl << std::endl;
 		else
 			std::cout << "DATABASE CONNECTION ERROR: failed to connect "
 					  << "to database [" << _host << ":" << _port << "/"
@@ -47,12 +51,33 @@ namespace RouteStat {
 
 
 
-	void		DB::initMap(std::vector<Polygon> * map) {
+	void		DB::initTable() {
+
+		pqxx::work		w(_conn);
+		pqxx::result	res;
+
+		res = w.exec(IS_TABLE_EXISTS);
+
+		try {
+			res.begin()[0].as<std::string>();
+		} catch (const std::exception &e) {
+
+			w.exec(CREATE_TABLE);
+
+			std::cout << "Successfully created table '" << TABLE
+					  << "'" << std::endl;
+		}
+		w.commit();
+	}
+
+	void		DB::initMap(std::vector<Polygon> *map) {
+
 
 		pqxx::result					res;
 		pqxx::result::const_iterator	record;
-		pqxx::work						w(_conn);
 
+		initTable();
+		pqxx::work w(_conn);
 		try {
 			res = w.exec(SELECT);
 			w.commit();

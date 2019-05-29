@@ -11,7 +11,7 @@ using namespace RouteStat;
 
 int		main(int ac, char **av)
 {
-	vector<Polygon> map;
+	vector<Polygon>	map;
 
 	if (ac != 9) {
 

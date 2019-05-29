@@ -2,7 +2,7 @@
 NAME = routestat
 
 SRCS = $(wildcard src/*.cpp)
-OBJS = $(patsubst %.cpp,%.o,$(SRCS))
+OBJS = $(patsubst src/%.cpp,obj/%.o,$(SRCS))
 
 CXX = g++
 CXXFLAGS = -std=c++14
@@ -12,18 +12,22 @@ LIBS = -lpthread -lzmq -lpqxx -lpq
 .PHONY: all clean fclean re
 .NOTPARALLEL: all clean fclean re
 
-all: $(NAME)
+all: dir $(NAME)
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@ $(LIBS)
+dir:
+	@mkdir -p obj
+
+obj/%.o: src/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 $(NAME): $(OBJS)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(NAME) $(OBJS) $(LIBS)
+	@$(CXX) $(CXXFLAGS) $(INCLUDES) -o $(NAME) $(OBJS) $(LIBS)
 
 clean:
 	@/bin/rm -f $(OBJS)
 
 fclean: clean
+	@/bin/rm -rf obj
 	@/bin/rm -f $(NAME)
 
 re: fclean all
