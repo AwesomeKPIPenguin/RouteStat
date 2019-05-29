@@ -10,7 +10,7 @@ Received polygons are stored in specified DB (**PostgreSQL** DBMS)
 There is a configurational script for installing all necessary libs:
 
 ```
-./config.sh
+sh config.sh
 ```
 
 There are **Makefile** and **CMakeLists.txt** files for building.
